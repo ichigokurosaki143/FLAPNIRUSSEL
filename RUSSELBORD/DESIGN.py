@@ -1,3 +1,5 @@
+#DESIGN
+
 import pygame
 from sys import exit
 import random
@@ -51,9 +53,9 @@ class Pipe(pygame.Rect):
 bg_img = pygame.image.load("flappybirdbg.png")
 brd_img = pygame.image.load("russel.png")
 brd_img = pygame.transform.scale(brd_img, (bird_w, bird_h))
-top_pp_image = pygame.image.load("toppipe.png")
+top_pp_image = pygame.image.load("top.png")
 top_pp_image = pygame.transform.scale(top_pp_image, (pipes_w, pipes_h))
-bot_pp_image = pygame.image.load("bottompipe.png")
+bot_pp_image = pygame.image.load("bottom.png")
 bot_pp_image = pygame.transform.scale(bot_pp_image, (pipes_w, pipes_h))
 
 # == SOUNDS == 

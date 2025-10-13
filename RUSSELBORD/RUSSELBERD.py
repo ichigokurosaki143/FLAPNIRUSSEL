@@ -1,3 +1,5 @@
+#ORIGINAL
+
 import pygame
 from sys import exit
 import random
@@ -7,15 +9,11 @@ import math
 Game_Width = 360
 Game_Height = 640
 
-# --- Initialize mixer ---
-pygame.mixer.pre_init(44100, -16, 2, 512) #optional lang to
-pygame.mixer.init()  # ensure mixer is initialized before loading sounds
-
 # Liit ng opening (mas maliit, mas hirap)
 Opening_Space = Game_Height / 5.2  # inadjust ko dati 1/4, ngayon mas maliit 
 
-# Base oscillation settings (Ito yung nag papagalaw sa pipes sa pag taas at pag baba)
-Pipe_Osc_Amp = 30 
+# Base oscillation settings
+Pipe_Osc_Amp = 30
 Pipe_Osc_Freq = 0.002
 
 # === GAME CONSTANTS ===
@@ -47,21 +45,14 @@ class Pipe(pygame.Rect):
         self.phase_offset = phase_offset
 
 
-# === IMAGES ===
+# === LOAD IMAGES ===
 bg_img = pygame.image.load("flappybirdbg.png")
-brd_img = pygame.image.load("russel.png")
+brd_img = pygame.image.load("flappybird.png")
 brd_img = pygame.transform.scale(brd_img, (bird_w, bird_h))
 top_pp_image = pygame.image.load("toppipe.png")
 top_pp_image = pygame.transform.scale(top_pp_image, (pipes_w, pipes_h))
 bot_pp_image = pygame.image.load("bottompipe.png")
 bot_pp_image = pygame.transform.scale(bot_pp_image, (pipes_w, pipes_h))
-
-# == SOUNDS == 
-flap_sound = pygame.mixer.Sound("sfx_wing.wav")
-point_sound = pygame.mixer.Sound("sfx_point.wav")
-hit_sound = pygame.mixer.Sound("sfx_hit.wav")
-swoosh_sound = pygame.mixer.Sound("sfx_swooshing.wav")
-die_sound = pygame.mixer.Sound("sfx_die.wav")
 
 # === GAME STATE ===
 bird = Bird(brd_img)
@@ -71,7 +62,6 @@ velocity_y = 0
 gravity = 0.4
 jump_strength = -6
 score = 0
-high_score = 0
 game_over = False
 
 
@@ -82,57 +72,15 @@ def draw():
     for pipe in pipes:
         window.blit(pipe.img, pipe)
 
-    # === SCORE DISPLAY ===
-    font_big = pygame.font.Font("flappy-font.ttf", 48) if pygame.font.get_fonts() else pygame.font.SysFont("Comic Sans MS", 48)
-    font_small = pygame.font.Font("flappy-font.ttf", 28) if pygame.font.get_fonts() else pygame.font.SysFont("Comic Sans MS", 28)
-
-    if not game_over:
-        # --- Current score on center top ---
-        text = font_big.render(f"{int(score)}", True, (255, 255, 255))
-        shadow = font_big.render(f"{int(score)}", True, (0, 0, 0))
-        text_rect = text.get_rect(center=(Game_Width / 2, 80))
-        shadow_rect = shadow.get_rect(center=(Game_Width / 2 + 2, 82))
-        window.blit(shadow, shadow_rect)
-        window.blit(text, text_rect)
-        
-    else:
-        # === GAME OVER SCOREBOARD ===
-        board_w, board_h = 250, 200
-        board_x, board_y = (Game_Width - board_w) / 2, (Game_Height - board_h) / 2
-
-        pygame.draw.rect(window, (245, 222, 179), (board_x, board_y, board_w, board_h), border_radius=15)
-        pygame.draw.rect(window, (222, 184, 135), (board_x, board_y, board_w, board_h), 4, border_radius=15)
-
-        # --- GAME OVER TEXT ---
-        title = font_big.render("GAME OVER", True, (255, 255, 255))
-        title_shadow = font_big.render("GAME OVER", True, (0, 0, 0))
-        title_rect = title.get_rect(center=(board_x + board_w / 2, board_y + 50))
-        title_shadow_rect = title_shadow.get_rect(center=(board_x + board_w / 2 + 2, board_y + 52))
-
-        window.blit(title_shadow, title_shadow_rect)
-        window.blit(title, title_rect)
-
-        # --- SCORE TEXTS ---
-        score_text = font_small.render(f"Score: {int(score)}", True, (0, 0, 0))
-        best_text = font_small.render(f"Best: {int(high_score)}", True, (0, 0, 0))
-
-        score_rect = score_text.get_rect(center=(board_x + board_w / 2, board_y + 105))
-        best_rect = best_text.get_rect(center=(board_x + board_w / 2, board_y + 135))
-
-        window.blit(score_text, score_rect)
-        window.blit(best_text, best_rect)
-
-        # --- RESTART TEXT---
-        restart_font = pygame.font.Font("flappy-font.ttf", 20) if pygame.font.get_fonts() else pygame.font.SysFont("Comic Sans MS", 20)
-        restart_text = restart_font.render("Press SPACE to Restart", True, (80, 60, 40))
-        restart_rect = restart_text.get_rect(center=(board_x + board_w / 2, board_y + board_h - 25))
-    
-        window.blit(restart_text, restart_rect)
+    text_str = f"{int(score)}" if not game_over else f"Game Over: {int(score)}"
+    font = pygame.font.SysFont("Comic Sans MS", 45)
+    text_render = font.render(text_str, True, "white")
+    window.blit(text_render, (5, 0))
 
 
 # === MOVE FUNCTION ===
 def move():
-    global velocity_y, score, high_score, game_over, velocity_x, gravity, jump_strength, Pipe_Osc_Freq, Pipe_Osc_Amp
+    global velocity_y, score, game_over, velocity_x, gravity, jump_strength, PIPE_OSC_FREQ, PIPE_OSC_AMPLITUDE
 
     # --- Difficulty scaling (habang tumataas score, bumibilis lahat) ---
     if score < 5:
@@ -141,28 +89,24 @@ def move():
         jump_strength = -6
         Pipe_Osc_Freq = 0.002
         Pipe_Osc_Amp = 30
-
     elif score < 10:
         velocity_x = -2.8
         gravity = 0.42
         jump_strength = -6.3
         Pipe_Osc_Freq = 0.0023
         Pipe_Osc_Amp = 32
-
     elif score < 15:
         velocity_x = -3.3
         gravity = 0.45
         jump_strength = -6.6
         Pipe_Osc_Freq = 0.0026
         Pipe_Osc_Amp = 34
-
     elif score < 20:
         velocity_x = -3.8
         gravity = 0.48
         jump_strength = -6.9
         Pipe_Osc_Freq = 0.0029
         Pipe_Osc_Amp = 36
-
     else:
         velocity_x = -4.3
         gravity = 0.5
@@ -204,7 +148,6 @@ def move():
 
         # Scoring check (per pipe pair)
         if not top_pipe.passed and bird.x > top_pipe.x + pipes_w:
-            point_sound.play()  # kapag nakascore
             score += 1
             top_pipe.passed = True
             if bot_pipe:
@@ -212,12 +155,6 @@ def move():
 
         # Collision detection
         if bird.colliderect(top_pipe) or (bot_pipe and bird.colliderect(bot_pipe)):
-            hit_sound.play()  # sound kapag nabangga
-            die_sound.play()  # death sound
-
-            if score > high_score:
-                high_score = score
-
             game_over = True
             return
 
@@ -263,14 +200,10 @@ while True:
 
         if event.type == create_pp_timer and not game_over:
             create_pp()
-        
 
-        # == KEYBINDS == 
         if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
                 velocity_y = jump_strength
-                flap_sound.play()
-
                 if game_over:
                     bird.y = bird_y
                     pipes.clear()
